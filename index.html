@@ -97,30 +97,30 @@
     }
     .pane.active{ display:block; }
 
-    .mediaInner{
-      width:100%;
-      height:100%;
-      position:relative;
-      background:#fff;
-    }
+ .mediaInner{
+  width:100%;
+  height:100%;
+  position:relative;
+  background: var(--card-bg);   /* ВАЖНО: теперь фон как у карточки */
+}
 
-    img.hero{
-      width:100%;
-      height:100%;
-      object-fit: contain;
-      display:block;
-      padding: 16px;          /* p-4 */
-      background:#fff;
-      mix-blend-mode:multiply; 
-    }
+ img.hero{
+  width:100%;
+  height:100%;
+  object-fit: contain;
+  display:block;
+  padding: 16px;
+  background: transparent;      /* вместо #fff */
+  mix-blend-mode: normal;       /* убрать multiply (иначе может "грязнить") */
+}
 
     model-viewer{
-      width:100%;
-      height:100%;
-      display:block;
-      background:#fff;
-      touch-action:none; /* важно для iOS Safari */
-    }
+  width:100%;
+  height:100%;
+  display:block;
+  background: transparent;      /* вместо #fff */
+  touch-action:none;
+}
 
     /* Hand icon only */
     .handHint{
@@ -222,6 +222,69 @@
 
 <body>
   <div class="wrap">
+    <div class="card">
+      <!-- Tabs -->
+      <div class="tabsRow">
+        <div class="tabs" role="tablist" aria-label="Media tabs">
+          <button class="tabBtn active" id="tabImage" role="tab" aria-selected="true">Image</button>
+          <button class="tabBtn" id="tab3d" role="tab" aria-selected="false">3D View</button>
+        </div>
+      </div>
+
+      <!-- Media -->
+      <div class="media">
+        <div class="pane active" id="paneImage" role="tabpanel" aria-labelledby="tabImage">
+          <div class="mediaInner">
+            <img class="hero" src="./image.png" alt="Product image" />
+          </div>
+        </div>
+
+        <div class="pane" id="pane3d" role="tabpanel" aria-labelledby="tab3d">
+          <div class="mediaInner">
+            <model-viewer
+              id="mv"
+              src="./PresidentLux_Test2.glb"
+              camera-controls
+              disable-pan
+              interaction-prompt="none"
+              loading="eager"
+              reveal="auto"
+              exposure="1"
+              field-of-view="30deg"
+            ></model-viewer>
+
+            <div id="hand" class="handHint show" aria-hidden="true">
+              <svg viewBox="0 0 64 64" fill="none">
+                <path d="M26 30V18c0-3 2-5 5-5s5 2 5 5v12" stroke="#111" stroke-width="3.5" stroke-linecap="round"/>
+                <path d="M36 30V22c0-3 2-5 5-5s5 2 5 5v16c0 9-7 16-16 16s-16-7-16-16v-6"
+                      stroke="#111" stroke-width="3.5" stroke-linecap="round"/>
+                <path d="M22 33l-4-4c-2-2-5-2-7 0s-2 5 0 7l11 11"
+                      stroke="#111" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M10 20c4-6 11-10 22-10s18 4 22 10" stroke="#111" stroke-opacity=".25" stroke-width="3" stroke-linecap="round"/>
+              </svg>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Content -->
+      <div class="content">
+        <div class="title">President</div>
+
+        <div class="specs">
+          <div><b>Platform</b> <span>3.05m / 10’</span></div>
+          <div><b>Power</b> <span>2.2kW / 3HP</span></div>
+        </div>
+
+        <div class="btnRow">
+          <button class="btn" type="button">CAD</button>
+          <button class="btn" type="button">Spec</button>
+          <button class="btn btnPrimary" type="button">Build your quote</button>
+        </div>
+      </div>
+    </div>
+  </div>
+    <div class="wrap">
     <div class="card">
       <!-- Tabs -->
       <div class="tabsRow">
