@@ -134,65 +134,88 @@
     </div>
   </div>
 
-  <script>
-    const mv = document.getElementById('mv');
-    const hint = document.getElementById('hint');
+ <script>
+  const mv = document.getElementById('mv');
+  const hint = document.getElementById('hint');
 
-    const showHint = () => hint.classList.add('show');
-    const hideHint = () => hint.classList.remove('show');
+  let autoRotateActive = true;
+  let autoRotateRAF = null;
 
-    showHint();
-    const autoHide = setTimeout(hideHint, 6000);
+  const showHint = () => hint.classList.add('show');
+  const hideHint = () => hint.classList.remove('show');
 
-    const hideOnInteract = () => {
-      clearTimeout(autoHide);
-      hideHint();
-      mv.removeEventListener('pointerdown', hideOnInteract);
-      mv.removeEventListener('touchstart', hideOnInteract);
-    };
-    mv.addEventListener('pointerdown', hideOnInteract);
-    mv.addEventListener('touchstart', hideOnInteract, { passive: true });
+  showHint();
+  const autoHideHint = setTimeout(hideHint, 6000);
 
-    // ---- Авто-кадрирование: отодвигаем камеру так, чтобы модель влезла ----
-    mv.addEventListener('load', () => {
-      // Центр модели
-      const c = mv.getBoundingBoxCenter(); // {x,y,z}
-      // Размеры модели
-      const s = mv.getDimensions();        // {x,y,z}
+  const stopAutoRotate = () => {
+    autoRotateActive = false;
+    if (autoRotateRAF) cancelAnimationFrame(autoRotateRAF);
+    hideHint();
 
-      // Target = центр модели (и чуть выше, чтобы платформа не "лежала" внизу)
-      const targetY = c.y + (s.y * 0.10);
-      mv.cameraTarget = `${c.x}m ${targetY}m ${c.z}m`;
+    mv.removeEventListener('pointerdown', stopAutoRotate);
+    mv.removeEventListener('touchstart', stopAutoRotate);
+    mv.removeEventListener('mousedown', stopAutoRotate);
+    mv.removeEventListener('wheel', stopAutoRotate);
+  };
 
-      // Рассчитываем дистанцию, чтобы влезло по ширине/глубине
-      const fovDeg = 30;
-      const fov = fovDeg * Math.PI / 180;
+  mv.addEventListener('pointerdown', stopAutoRotate);
+  mv.addEventListener('touchstart', stopAutoRotate, { passive: true });
+  mv.addEventListener('mousedown', stopAutoRotate);
+  mv.addEventListener('wheel', stopAutoRotate);
 
-      // aspect берём из реального размера canvas
-      const rect = mv.getBoundingClientRect();
-      const aspect = Math.max(0.2, rect.width / Math.max(1, rect.height));
+  mv.addEventListener('load', () => {
+    /* ---------- авто-кадрирование ---------- */
+    const c = mv.getBoundingBoxCenter();
+    const s = mv.getDimensions();
 
-      // горизонтальный FOV
-      const hFov = 2 * Math.atan(Math.tan(fov / 2) * aspect);
+    const targetY = c.y + (s.y * 0.10);
+    mv.cameraTarget = `${c.x}m ${targetY}m ${c.z}m`;
 
-      // хотим вместить самый "длинный" размер в кадр:
-      const maxH = Math.max(s.x, s.z); // длина/ширина тренажёра
-      const padding = 1.25;           // запас по краям (увеличьте до 1.35 если нужно)
-      const dist = (maxH * padding) / (2 * Math.tan(hFov / 2));
+    const fov = 30 * Math.PI / 180;
+    const rect = mv.getBoundingClientRect();
+    const aspect = Math.max(0.2, rect.width / Math.max(1, rect.height));
+    const hFov = 2 * Math.atan(Math.tan(fov / 2) * aspect);
 
-      // Фиксируем только горизонтальное вращение на ~160° (зад не показываем)
-      const az = 0;               // стартовый азимут
-      const polar = 90;           // фикс вертикали
-      const limit = 80;           // +/- 80° = 160° (если хотите ближе к 180 — поставьте 85/90)
+    const maxH = Math.max(s.x, s.z);
+    const padding = 1.35;
+    const dist = (maxH * padding) / (2 * Math.tan(hFov / 2));
+
+    const polar = 90;
+    const limit = 80;
+
+    mv.minCameraOrbit = `${-limit}deg ${polar}deg ${dist}m`;
+    mv.maxCameraOrbit = `${limit}deg ${polar}deg ${dist}m`;
+
+    /* ---------- старт авто-движения ---------- */
+    let start = null;
+    const duration = 18000; // 18 секунд на 180°
+    const from = -limit;
+    const to = limit;
+
+    function animateAutoRotate(ts) {
+      if (!autoRotateActive) return;
+      if (!start) start = ts;
+
+      const progress = Math.min((ts - start) / duration, 1);
+      const az = from + (to - from) * progress;
 
       mv.cameraOrbit = `${az}deg ${polar}deg ${dist}m`;
-      mv.minCameraOrbit = `${-limit}deg ${polar}deg ${dist}m`;
-      mv.maxCameraOrbit = `${limit}deg ${polar}deg ${dist}m`;
 
-      // Подсказку ещё раз покажем на пару секунд после загрузки
-      showHint();
-      setTimeout(hideHint, 4500);
-    });
-  </script>
+      if (progress < 1) {
+        autoRotateRAF = requestAnimationFrame(animateAutoRotate);
+      } else {
+        // дошли до конца — останавливаемся
+        autoRotateActive = false;
+        hideHint();
+      }
+    }
+
+    autoRotateRAF = requestAnimationFrame(animateAutoRotate);
+
+    // ещё раз кратко показываем подсказку
+    showHint();
+    setTimeout(hideHint, 4500);
+  });
+</script>
 </body>
 </html>
