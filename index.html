@@ -9,64 +9,16 @@
 
   <style>
     :root { --radius: 18px; }
-
     body { margin: 0; font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial; background: #fff; }
     .wrap { max-width: 1100px; margin: 0 auto; padding: 16px; }
-
-    .viewer {
-      position: relative;
-      border-radius: var(--radius);
-      overflow: hidden;
-      background: #fff;
-      box-shadow: 0 10px 30px rgba(0,0,0,.08);
-    }
-
-    model-viewer {
-      width: 100%;
-      height: 560px;
-      display: block;
-      background: #fff;
-      touch-action: none;
-    }
-
-    /* Center hand icon */
-    .handHint {
-      position: absolute;
-      left: 50%;
-      top: 50%;
-      transform: translate(-50%, -55%);
-      pointer-events: none;
-      opacity: 0;
-      transition: opacity .25s ease, transform .25s ease;
-      filter: drop-shadow(0 6px 16px rgba(0,0,0,.18));
-    }
-    .handHint.show {
-      opacity: 0.9;
-      transform: translate(-50%, -55%) scale(1);
-    }
-    .handHint.hide {
-      opacity: 0;
-      transform: translate(-50%, -55%) scale(0.98);
-    }
-
-    /* subtle motion like "drag" */
-    .handHint svg {
-      width: 64px;
-      height: 64px;
-      opacity: 0.95;
-      animation: hintWiggle 1.8s ease-in-out infinite;
-    }
-
-    @keyframes hintWiggle {
-      0%   { transform: rotate(-8deg) translateX(-6px); opacity: .65; }
-      50%  { transform: rotate(8deg) translateX(6px);  opacity: .95; }
-      100% { transform: rotate(-8deg) translateX(-6px); opacity: .65; }
-    }
-
-    @media (max-width: 600px) {
-      model-viewer { height: 420px; }
-      .handHint svg { width: 56px; height: 56px; }
-    }
+    .viewer { position: relative; border-radius: var(--radius); overflow: hidden; background: #fff; box-shadow: 0 10px 30px rgba(0,0,0,.08); }
+    model-viewer { width: 100%; height: 560px; display: block; background: #fff; touch-action: none; }
+    .handHint { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -55%); pointer-events: none; opacity: 0; transition: opacity .25s ease, transform .25s ease; filter: drop-shadow(0 6px 16px rgba(0,0,0,.18)); }
+    .handHint.show { opacity: .9; transform: translate(-50%, -55%) scale(1); }
+    .handHint.hide { opacity: 0; transform: translate(-50%, -55%) scale(.98); }
+    .handHint svg { width: 64px; height: 64px; opacity: .95; animation: hintWiggle 1.8s ease-in-out infinite; }
+    @keyframes hintWiggle { 0%{transform:rotate(-8deg) translateX(-6px);opacity:.65} 50%{transform:rotate(8deg) translateX(6px);opacity:.95} 100%{transform:rotate(-8deg) translateX(-6px);opacity:.65} }
+    @media (max-width: 600px) { model-viewer { height: 420px; } .handHint svg { width: 56px; height: 56px; } }
   </style>
 </head>
 
@@ -76,9 +28,8 @@
       <model-viewer
         id="mv"
         src="./PresidentLux_Test2.glb"
-
         camera-controls
-        disable-zoom
+
         disable-pan
         interaction-prompt="none"
         loading="eager"
@@ -88,9 +39,7 @@
         exposure="1"
       ></model-viewer>
 
-      <!-- Only icon, no text -->
       <div id="hand" class="handHint show" aria-hidden="true">
-        <!-- simple hand/drag icon (clean, similar to common 3D viewers) -->
         <svg viewBox="0 0 64 64" fill="none">
           <path d="M26 30V18c0-3 2-5 5-5s5 2 5 5v12" stroke="#111" stroke-width="3.5" stroke-linecap="round"/>
           <path d="M36 30V22c0-3 2-5 5-5s5 2 5 5v16c0 9-7 16-16 16s-16-7-16-16v-6"
@@ -110,19 +59,15 @@
     let autoActive = true;
     let raf = null;
 
-    // Настройка "как на скрине":
-    // azimuth: поворот "в 3/4" к зрителю
-    // polar: < 90 => камера чуть сверху, платформа выглядит наклонённой к зрителю
-    const START_AZ = -22;   // попробуйте -18 / -25 если нужно чуть иначе
-    const POLAR    = 78;    // 75–82 обычно даёт красивый "наклон платформы"
-    const LIMIT    = 85;    // ограничение обзора (чтобы "спина" не показывалась)
+    const START_AZ = -22;
+    const POLAR    = 78;
+    const LIMIT    = 85;
 
     const stopAuto = () => {
       autoActive = false;
       if (raf) cancelAnimationFrame(raf);
       hand.classList.add('hide');
       hand.classList.remove('show');
-
       mv.removeEventListener('pointerdown', stopAuto);
       mv.removeEventListener('touchstart', stopAuto);
       mv.removeEventListener('mousedown', stopAuto);
@@ -141,15 +86,12 @@
     }
 
     mv.addEventListener('load', () => {
-      // Центр и размеры модели
-      const c = mv.getBoundingBoxCenter(); // {x,y,z}
-      const s = mv.getDimensions();        // {x,y,z}
+      const c = mv.getBoundingBoxCenter();
+      const s = mv.getDimensions();
 
-      // Target: центр модели + чуть вверх (чтобы платформа не "липла" к низу)
       const targetY = c.y + (s.y * 0.12);
       mv.cameraTarget = `${c.x}m ${targetY}m ${c.z}m`;
 
-      // Рассчитываем дистанцию так, чтобы влезло и по ширине, и по высоте
       const fovDeg = 30;
       const vFov = (fovDeg * Math.PI) / 180;
 
@@ -157,40 +99,38 @@
       const aspect = Math.max(0.2, rect.width / Math.max(1, rect.height));
       const hFov = 2 * Math.atan(Math.tan(vFov / 2) * aspect);
 
-      // Берём "длинный" размер (x или z) для ширины и y для высоты
       const maxH = Math.max(s.x, s.z);
-      const pad  = 1.30; // запас по краям (увеличьте до 1.40 если вдруг режет)
+      const pad  = 1.30;
 
       const distByWidth  = (maxH * pad) / (2 * Math.tan(hFov / 2));
       const distByHeight = (s.y  * pad) / (2 * Math.tan(vFov / 2));
       const dist = Math.max(distByWidth, distByHeight);
 
-      // Ограничиваем вращение: только горизонтально и без "задней" части
-      mv.minCameraOrbit = `${START_AZ - LIMIT}deg ${POLAR}deg ${dist}m`;
-      mv.maxCameraOrbit = `${START_AZ + LIMIT}deg ${POLAR}deg ${dist}m`;
+      // Ограничение вращения (горизонталь) + лимиты зума
+      const minDist = dist * 0.65; // ближе (pinch in)
+      const maxDist = dist * 1.80; // дальше (pinch out)
 
-      // Стартовая позиция
+      mv.minCameraOrbit = `${START_AZ - LIMIT}deg ${POLAR}deg ${minDist}m`;
+      mv.maxCameraOrbit = `${START_AZ + LIMIT}deg ${POLAR}deg ${maxDist}m`;
+
+      // Стартовая позиция (средняя дистанция)
       setOrbit(START_AZ, dist);
 
-      // Авто-демо вращения "чуть-чуть" (покачивание), пока нет взаимодействия
-      const AMP = 10;          // амплитуда в градусах (8–14 обычно супер)
-      const SPEED = 0.00055;   // скорость (меньше = медленнее)
-
+      // Авто-покачивание до взаимодействия (оно не мешает pinch)
+      const AMP = 10;
+      const SPEED = 0.00055;
       let t0 = null;
+
       function demo(ts) {
         if (!autoActive) return;
         if (!t0) t0 = ts;
         const t = (ts - t0) * SPEED;
-
-        // мягкая синусоида вокруг стартового азимута
         const az = START_AZ + Math.sin(t) * AMP;
         setOrbit(az, dist);
-
         raf = requestAnimationFrame(demo);
       }
       raf = requestAnimationFrame(demo);
 
-      // Иконка видна до первого взаимодействия
       hand.classList.add('show');
       hand.classList.remove('hide');
     });
