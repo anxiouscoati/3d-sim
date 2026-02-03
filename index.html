@@ -3,9 +3,9 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Prototype – Image / 3D</title>
+  <title>Prototype Catalog – Image / 3D</title>
 
-  <!-- Inter (как в прототипах) -->
+  <!-- Inter -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -15,80 +15,137 @@
 
   <style>
     :root{
-      --card-bg:#FFFFFF;
-      --dark-bg:#2b2b2b;
+      --page-bg:#F7F7F7;
+      --card-bg:#ffffff;
+      --text:#0f0f0f;
+      --muted:rgba(15,15,15,.65);
 
-      --tab-active-bg:#F7F7F7;
-      --tab-active-text:#3b6fb6;
-      --tab-inactive-text:#1a1c1a;
+      --ui-bg:#F7F7F7;      /* фон кнопок + активный таб */
+      --ui-border:rgba(0,0,0,.08);
 
-      --btn-blue:#2f80ed;
+      --tab-inactive-text:#111;
+      --tab-active-text:#111;
+
+      --radius:18px;
+      --shadow: 0 14px 40px rgba(0,0,0,.08);
+      --shadow-hover: 0 22px 60px rgba(0,0,0,.12);
+
       --btn-red:#ff3346;
       --btn-red-hover:#e62e3f;
 
-      --radius:17px;
-      --shadow: 0 14px 40px rgba(0,0,0,.10);
-      --shadow-hover: 0 22px 60px rgba(0,0,0,.16);
-      --border: rgba(0,0,0,.10);
-
-      --font: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, Arial;
+      --font:"Inter",system-ui,-apple-system,"Segoe UI",Roboto,Arial;
     }
 
     *{ box-sizing:border-box; }
     body{
       margin:0;
       font-family:var(--font);
-      background:#fff;
-      color:#F7F7F7;
-      padding:24px 16px 60px;
+      background:var(--page-bg);
+      color:var(--text);
+      padding:28px 16px 64px;
+    }
+    .wrap{ max-width:1160px; margin:0 auto; }
+
+    /* Section */
+    .series{
+      background:var(--page-bg);
+      margin:0 0 28px;
+    }
+    .seriesHeader{
+      display:flex;
+      align-items:flex-end;
+      justify-content:space-between;
+      gap:16px;
+      margin: 10px 0 14px;
+    }
+    .seriesTitle{
+      margin:0;
+      font-size:18px;
+      font-weight:800;
+      letter-spacing:-0.01em;
+    }
+    .seriesSub{
+      margin:0;
+      font-size:13px;
+      color:var(--muted);
     }
 
-    .wrap{ max-width: 1100px; margin: 0 auto; }
+    /* Grids */
+    .cardsGrid{
+      display:grid;
+      gap:24px;
+    }
+    .cardsGrid--racer{ grid-template-columns: repeat(2, minmax(0, 1fr)); } /* 3 cards => 2 rows */
+    .cardsGrid--two{ grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .cardsGrid--one{ grid-template-columns: 1fr; padding: 0 8px; }
 
+    @media (max-width: 900px){
+      .cardsGrid--racer, .cardsGrid--two { grid-template-columns: 1fr; }
+      .cardsGrid--one { padding: 0; }
+    }
+
+    /* Mobile carousel only where data-mobile="carousel" */
+    @media (max-width: 900px){
+      .cardsGrid[data-mobile="carousel"]{
+        display:flex;
+        overflow-x:auto;
+        gap:16px;
+        padding: 6px 2px 12px;
+        scroll-snap-type:x mandatory;
+        -webkit-overflow-scrolling: touch;
+      }
+      .cardsGrid[data-mobile="carousel"] > .card{
+        flex: 0 0 92%;
+        scroll-snap-align:center;
+      }
+    }
+
+    /* Card */
     .card{
-      background: var(--card-bg);
-      border-radius: var(--radius);
+      background:var(--card-bg);
+      border-radius:var(--radius);
       overflow:hidden;
-      box-shadow: var(--shadow);
-      transition: box-shadow .25s ease;
+      box-shadow:var(--shadow);
+      transition:box-shadow .25s ease, transform .08s ease;
     }
-    .card:hover{ box-shadow: var(--shadow-hover); }
+    .card:hover{ box-shadow:var(--shadow-hover); }
+    .card:active{ transform: translateY(1px); }
 
-    /* Tabs row */
+    /* Tabs */
     .tabsRow{
       width:100%;
       display:flex;
       justify-content:center;
-      padding-top: 12px;
+      padding:14px 12px 6px;
     }
     .tabs{
       display:flex;
-      gap: 8px;
+      gap:10px;
       align-items:flex-start;
     }
     .tabBtn{
       border:0;
-      background: transparent;
+      background:transparent;
       cursor:pointer;
       padding: 10px 16px;
-      border-radius: 10px; /* rounded-lg */
-      font-size: 14px;
+      border-radius: 12px;
+      font-size:14px;
       letter-spacing: -0.15px;
-      font-weight: 400;
+      font-weight: 500;
       color: var(--tab-inactive-text);
-      transition: background .15s ease, color .15s ease;
+      transition: background .15s ease, box-shadow .15s ease;
     }
     .tabBtn.active{
-      background: var(--tab-active-bg);
+      background: var(--ui-bg);   /* активный таб серый */
+      box-shadow: 0 10px 18px rgba(0,0,0,.08);
       color: var(--tab-active-text);
-      font-weight: 500;
     }
 
     /* Media */
     .media{
       width:100%;
-      aspect-ratio: 561 / 397; /* как в компоненте */
-      position: relative;
+      aspect-ratio: 561 / 397;
+      position:relative;
     }
     .pane{
       position:absolute;
@@ -97,32 +154,29 @@
     }
     .pane.active{ display:block; }
 
- .mediaInner{
-  width:100%;
-  height:100%;
-  position:relative;
-  background: var(--card-bg);   /* ВАЖНО: теперь фон как у карточки */
-}
-
- img.hero{
-  width:100%;
-  height:100%;
-  object-fit: contain;
-  display:block;
-  padding: 16px;
-  background: transparent;      /* вместо #fff */
-  mix-blend-mode: normal;       /* убрать multiply (иначе может "грязнить") */
-}
-
+    .mediaInner{
+      width:100%;
+      height:100%;
+      position:relative;
+      background:transparent;
+    }
+    img.hero{
+      width:100%;
+      height:100%;
+      object-fit:contain;
+      display:block;
+      padding:16px;
+      background:transparent;
+    }
     model-viewer{
-  width:100%;
-  height:100%;
-  display:block;
-  background: transparent;      /* вместо #fff */
-  touch-action:none;
-}
+      width:100%;
+      height:100%;
+      display:block;
+      background:transparent;
+      touch-action:none;
+    }
 
-    /* Hand icon only */
+    /* Hand icon */
     .handHint{
       position:absolute;
       left:50%;
@@ -155,61 +209,56 @@
 
     /* Content */
     .content{
-      padding: 8px 16px 18px; /* px-4 pb-6 pt-2 */
+      padding: 10px 16px 18px;
       display:flex;
       flex-direction:column;
-      gap: 14px;
+      gap:14px;
     }
     .title{
       margin: 6px 0 0;
       text-align:center;
-      font-weight: 700;
-      font-size: 24px; /* text-2xl */
-      line-height: 32px; /* leading-8 */
+      font-weight:700;
+      font-size:24px;
+      line-height:32px;
+      letter-spacing:-0.02em;
     }
-
     .specs{
       display:flex;
-      gap: 18px;
+      gap:18px;
       justify-content:center;
       flex-wrap:wrap;
-      font-size: 14px;
+      font-size:14px;
+      color:var(--text);
     }
-    .specs b{ font-weight: 600; }
-    .specs span{ font-weight: 400; }
+    .specs b{ font-weight:600; }
+    .specs span{ font-weight:400; color:rgba(15,15,15,.75); }
 
     .btnRow{
       display:flex;
-      gap: 12px;
+      gap:12px;
       align-items:stretch;
     }
     .btn{
       flex:1;
-      border:0;
-      border-radius: 10px; /* rounded-lg */
-      padding: 12px 14px;
-      font-weight: 600;
+      border:1px solid var(--ui-border);
+      border-radius:12px;
+      padding:12px 14px;
+      font-weight:600;
       cursor:pointer;
-      background: #fff;
-      color: var(--btn-blue);
-      transition: background .15s ease, color .15s ease, box-shadow .15s ease, transform .08s ease;
+      background: var(--ui-bg);  /* серые кнопки */
+      color: #111;
+      transition: box-shadow .15s ease, transform .08s ease, background .15s ease;
     }
-    .btn:hover{
-      background: var(--btn-blue);
-      color:#fff;
-      box-shadow: 0 10px 18px rgba(0,0,0,.12);
-    }
+    .btn:hover{ box-shadow: 0 10px 18px rgba(0,0,0,.10); }
     .btn:active{ transform: translateY(1px); }
 
     .btnPrimary{
-      flex: 1.15;
+      flex:1.15;
       background: var(--btn-red);
       color:#fff;
+      border:none;
     }
-    .btnPrimary:hover{
-      background: var(--btn-red-hover);
-      color:#fff;
-    }
+    .btnPrimary:hover{ background: var(--btn-red-hover); }
 
     @media (max-width: 640px){
       .media{ aspect-ratio: 1 / 1; }
@@ -222,193 +271,469 @@
 
 <body>
   <div class="wrap">
-    <div class="card">
-      <!-- Tabs -->
-      <div class="tabsRow">
-        <div class="tabs" role="tablist" aria-label="Media tabs">
-          <button class="tabBtn active" id="tabImage" role="tab" aria-selected="true">Image</button>
-          <button class="tabBtn" id="tab3d" role="tab" aria-selected="false">3D View</button>
+
+    <!-- Racer Series: 3 cards, desktop 2-up, mobile carousel -->
+    <section class="series">
+      <div class="seriesHeader">
+        <div>
+          <h2 class="seriesTitle">Racer Series</h2>
+          <p class="seriesSub">3 cards · desktop 2-up · mobile carousel</p>
         </div>
       </div>
 
-      <!-- Media -->
-      <div class="media">
-        <div class="pane active" id="paneImage" role="tabpanel" aria-labelledby="tabImage">
-          <div class="mediaInner">
-            <img class="hero" src="./image.png" alt="Product image" />
+      <div class="cardsGrid cardsGrid--racer" data-mobile="carousel">
+        <div class="card product-card" data-title="Racer One" data-image="./image.png" data-glb="./PresidentLux_Test2.glb">
+          <!-- CARD INNER -->
+          <div class="tabsRow">
+            <div class="tabs" role="tablist" aria-label="Media tabs">
+              <button class="tabBtn active" type="button" data-tab="image" aria-selected="true">Image</button>
+              <button class="tabBtn" type="button" data-tab="3d" aria-selected="false">3D View</button>
+            </div>
+          </div>
+
+          <div class="media">
+            <div class="pane active" data-pane="image" role="tabpanel">
+              <div class="mediaInner">
+                <img class="hero" alt="Product image" />
+              </div>
+            </div>
+
+            <div class="pane" data-pane="3d" role="tabpanel">
+              <div class="mediaInner">
+                <model-viewer
+                  class="mv"
+                  camera-controls
+                  disable-pan
+                  interaction-prompt="none"
+                  loading="eager"
+                  reveal="auto"
+                  exposure="1"
+                  field-of-view="30deg"
+                ></model-viewer>
+
+                <div class="handHint show" aria-hidden="true">
+                  <svg viewBox="0 0 64 64" fill="none">
+                    <path d="M26 30V18c0-3 2-5 5-5s5 2 5 5v12" stroke="#111" stroke-width="3.5" stroke-linecap="round"/>
+                    <path d="M36 30V22c0-3 2-5 5-5s5 2 5 5v16c0 9-7 16-16 16s-16-7-16-16v-6"
+                          stroke="#111" stroke-width="3.5" stroke-linecap="round"/>
+                    <path d="M22 33l-4-4c-2-2-5-2-7 0s-2 5 0 7l11 11"
+                          stroke="#111" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M10 20c4-6 11-10 22-10s18 4 22 10" stroke="#111" stroke-opacity=".25" stroke-width="3" stroke-linecap="round"/>
+                  </svg>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="content">
+            <div class="title js-title">Racer One</div>
+            <div class="specs">
+              <div><b>Platform</b> <span>3.05m / 10’</span></div>
+              <div><b>Power</b> <span>2.2kW / 3HP</span></div>
+            </div>
+            <div class="btnRow">
+              <button class="btn" type="button">CAD</button>
+              <button class="btn" type="button">Spec</button>
+              <button class="btn btnPrimary" type="button">Build your quote</button>
+            </div>
           </div>
         </div>
 
-        <div class="pane" id="pane3d" role="tabpanel" aria-labelledby="tab3d">
-          <div class="mediaInner">
-            <model-viewer
-              id="mv"
-              src="./PresidentLux_Test2.glb"
-              camera-controls
-              disable-pan
-              interaction-prompt="none"
-              loading="eager"
-              reveal="auto"
-              exposure="1"
-              field-of-view="30deg"
-            ></model-viewer>
+        <div class="card product-card" data-title="Racer Two" data-image="./image.png" data-glb="./PresidentLux_Test2.glb">
+          <div class="tabsRow">
+            <div class="tabs" role="tablist" aria-label="Media tabs">
+              <button class="tabBtn active" type="button" data-tab="image" aria-selected="true">Image</button>
+              <button class="tabBtn" type="button" data-tab="3d" aria-selected="false">3D View</button>
+            </div>
+          </div>
 
-            <div id="hand" class="handHint show" aria-hidden="true">
-              <svg viewBox="0 0 64 64" fill="none">
-                <path d="M26 30V18c0-3 2-5 5-5s5 2 5 5v12" stroke="#111" stroke-width="3.5" stroke-linecap="round"/>
-                <path d="M36 30V22c0-3 2-5 5-5s5 2 5 5v16c0 9-7 16-16 16s-16-7-16-16v-6"
-                      stroke="#111" stroke-width="3.5" stroke-linecap="round"/>
-                <path d="M22 33l-4-4c-2-2-5-2-7 0s-2 5 0 7l11 11"
-                      stroke="#111" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
-                <path d="M10 20c4-6 11-10 22-10s18 4 22 10" stroke="#111" stroke-opacity=".25" stroke-width="3" stroke-linecap="round"/>
-              </svg>
+          <div class="media">
+            <div class="pane active" data-pane="image" role="tabpanel">
+              <div class="mediaInner">
+                <img class="hero" alt="Product image" />
+              </div>
+            </div>
+
+            <div class="pane" data-pane="3d" role="tabpanel">
+              <div class="mediaInner">
+                <model-viewer
+                  class="mv"
+                  camera-controls
+                  disable-pan
+                  interaction-prompt="none"
+                  loading="eager"
+                  reveal="auto"
+                  exposure="1"
+                  field-of-view="30deg"
+                ></model-viewer>
+
+                <div class="handHint show" aria-hidden="true">
+                  <svg viewBox="0 0 64 64" fill="none">
+                    <path d="M26 30V18c0-3 2-5 5-5s5 2 5 5v12" stroke="#111" stroke-width="3.5" stroke-linecap="round"/>
+                    <path d="M36 30V22c0-3 2-5 5-5s5 2 5 5v16c0 9-7 16-16 16s-16-7-16-16v-6"
+                          stroke="#111" stroke-width="3.5" stroke-linecap="round"/>
+                    <path d="M22 33l-4-4c-2-2-5-2-7 0s-2 5 0 7l11 11"
+                          stroke="#111" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M10 20c4-6 11-10 22-10s18 4 22 10" stroke="#111" stroke-opacity=".25" stroke-width="3" stroke-linecap="round"/>
+                  </svg>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="content">
+            <div class="title js-title">Racer Two</div>
+            <div class="specs">
+              <div><b>Platform</b> <span>3.05m / 10’</span></div>
+              <div><b>Power</b> <span>2.2kW / 3HP</span></div>
+            </div>
+            <div class="btnRow">
+              <button class="btn" type="button">CAD</button>
+              <button class="btn" type="button">Spec</button>
+              <button class="btn btnPrimary" type="button">Build your quote</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="card product-card" data-title="Racer Three" data-image="./image.png" data-glb="./PresidentLux_Test2.glb">
+          <div class="tabsRow">
+            <div class="tabs" role="tablist" aria-label="Media tabs">
+              <button class="tabBtn active" type="button" data-tab="image" aria-selected="true">Image</button>
+              <button class="tabBtn" type="button" data-tab="3d" aria-selected="false">3D View</button>
+            </div>
+          </div>
+
+          <div class="media">
+            <div class="pane active" data-pane="image" role="tabpanel">
+              <div class="mediaInner">
+                <img class="hero" alt="Product image" />
+              </div>
+            </div>
+
+            <div class="pane" data-pane="3d" role="tabpanel">
+              <div class="mediaInner">
+                <model-viewer
+                  class="mv"
+                  camera-controls
+                  disable-pan
+                  interaction-prompt="none"
+                  loading="eager"
+                  reveal="auto"
+                  exposure="1"
+                  field-of-view="30deg"
+                ></model-viewer>
+
+                <div class="handHint show" aria-hidden="true">
+                  <svg viewBox="0 0 64 64" fill="none">
+                    <path d="M26 30V18c0-3 2-5 5-5s5 2 5 5v12" stroke="#111" stroke-width="3.5" stroke-linecap="round"/>
+                    <path d="M36 30V22c0-3 2-5 5-5s5 2 5 5v16c0 9-7 16-16 16s-16-7-16-16v-6"
+                          stroke="#111" stroke-width="3.5" stroke-linecap="round"/>
+                    <path d="M22 33l-4-4c-2-2-5-2-7 0s-2 5 0 7l11 11"
+                          stroke="#111" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M10 20c4-6 11-10 22-10s18 4 22 10" stroke="#111" stroke-opacity=".25" stroke-width="3" stroke-linecap="round"/>
+                  </svg>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="content">
+            <div class="title js-title">Racer Three</div>
+            <div class="specs">
+              <div><b>Platform</b> <span>3.05m / 10’</span></div>
+              <div><b>Power</b> <span>2.2kW / 3HP</span></div>
+            </div>
+            <div class="btnRow">
+              <button class="btn" type="button">CAD</button>
+              <button class="btn" type="button">Spec</button>
+              <button class="btn btnPrimary" type="button">Build your quote</button>
             </div>
           </div>
         </div>
       </div>
+    </section>
 
-      <!-- Content -->
-      <div class="content">
-        <div class="title">President</div>
-
-        <div class="specs">
-          <div><b>Platform</b> <span>3.05m / 10’</span></div>
-          <div><b>Power</b> <span>2.2kW / 3HP</span></div>
-        </div>
-
-        <div class="btnRow">
-          <button class="btn" type="button">CAD</button>
-          <button class="btn" type="button">Spec</button>
-          <button class="btn btnPrimary" type="button">Build your quote</button>
-        </div>
-      </div>
-    </div>
-  </div>
-    <div class="wrap">
-    <div class="card">
-      <!-- Tabs -->
-      <div class="tabsRow">
-        <div class="tabs" role="tablist" aria-label="Media tabs">
-          <button class="tabBtn active" id="tabImage" role="tab" aria-selected="true">Image</button>
-          <button class="tabBtn" id="tab3d" role="tab" aria-selected="false">3D View</button>
+    <!-- President Series: 2 cards, desktop 2-up -->
+    <section class="series">
+      <div class="seriesHeader">
+        <div>
+          <h2 class="seriesTitle">President Series</h2>
+          <p class="seriesSub">2 cards · 2-up layout</p>
         </div>
       </div>
 
-      <!-- Media -->
-      <div class="media">
-        <div class="pane active" id="paneImage" role="tabpanel" aria-labelledby="tabImage">
-          <div class="mediaInner">
-            <img class="hero" src="./image.png" alt="Product image" />
+      <div class="cardsGrid cardsGrid--two">
+        <div class="card product-card" data-title="President One" data-image="./image.png" data-glb="./PresidentLux_Test2.glb">
+          <div class="tabsRow">
+            <div class="tabs" role="tablist" aria-label="Media tabs">
+              <button class="tabBtn active" type="button" data-tab="image" aria-selected="true">Image</button>
+              <button class="tabBtn" type="button" data-tab="3d" aria-selected="false">3D View</button>
+            </div>
+          </div>
+
+          <div class="media">
+            <div class="pane active" data-pane="image" role="tabpanel">
+              <div class="mediaInner">
+                <img class="hero" alt="Product image" />
+              </div>
+            </div>
+
+            <div class="pane" data-pane="3d" role="tabpanel">
+              <div class="mediaInner">
+                <model-viewer
+                  class="mv"
+                  camera-controls
+                  disable-pan
+                  interaction-prompt="none"
+                  loading="eager"
+                  reveal="auto"
+                  exposure="1"
+                  field-of-view="30deg"
+                ></model-viewer>
+
+                <div class="handHint show" aria-hidden="true">
+                  <svg viewBox="0 0 64 64" fill="none">
+                    <path d="M26 30V18c0-3 2-5 5-5s5 2 5 5v12" stroke="#111" stroke-width="3.5" stroke-linecap="round"/>
+                    <path d="M36 30V22c0-3 2-5 5-5s5 2 5 5v16c0 9-7 16-16 16s-16-7-16-16v-6"
+                          stroke="#111" stroke-width="3.5" stroke-linecap="round"/>
+                    <path d="M22 33l-4-4c-2-2-5-2-7 0s-2 5 0 7l11 11"
+                          stroke="#111" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M10 20c4-6 11-10 22-10s18 4 22 10" stroke="#111" stroke-opacity=".25" stroke-width="3" stroke-linecap="round"/>
+                  </svg>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="content">
+            <div class="title js-title">President One</div>
+            <div class="specs">
+              <div><b>Platform</b> <span>3.05m / 10’</span></div>
+              <div><b>Power</b> <span>2.2kW / 3HP</span></div>
+            </div>
+            <div class="btnRow">
+              <button class="btn" type="button">CAD</button>
+              <button class="btn" type="button">Spec</button>
+              <button class="btn btnPrimary" type="button">Build your quote</button>
+            </div>
           </div>
         </div>
 
-        <div class="pane" id="pane3d" role="tabpanel" aria-labelledby="tab3d">
-          <div class="mediaInner">
-            <model-viewer
-              id="mv"
-              src="./PresidentLux_Test2.glb"
-              camera-controls
-              disable-pan
-              interaction-prompt="none"
-              loading="eager"
-              reveal="auto"
-              exposure="1"
-              field-of-view="30deg"
-            ></model-viewer>
+        <div class="card product-card" data-title="President Two" data-image="./image.png" data-glb="./PresidentLux_Test2.glb">
+          <div class="tabsRow">
+            <div class="tabs" role="tablist" aria-label="Media tabs">
+              <button class="tabBtn active" type="button" data-tab="image" aria-selected="true">Image</button>
+              <button class="tabBtn" type="button" data-tab="3d" aria-selected="false">3D View</button>
+            </div>
+          </div>
 
-            <div id="hand" class="handHint show" aria-hidden="true">
-              <svg viewBox="0 0 64 64" fill="none">
-                <path d="M26 30V18c0-3 2-5 5-5s5 2 5 5v12" stroke="#111" stroke-width="3.5" stroke-linecap="round"/>
-                <path d="M36 30V22c0-3 2-5 5-5s5 2 5 5v16c0 9-7 16-16 16s-16-7-16-16v-6"
-                      stroke="#111" stroke-width="3.5" stroke-linecap="round"/>
-                <path d="M22 33l-4-4c-2-2-5-2-7 0s-2 5 0 7l11 11"
-                      stroke="#111" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
-                <path d="M10 20c4-6 11-10 22-10s18 4 22 10" stroke="#111" stroke-opacity=".25" stroke-width="3" stroke-linecap="round"/>
-              </svg>
+          <div class="media">
+            <div class="pane active" data-pane="image" role="tabpanel">
+              <div class="mediaInner">
+                <img class="hero" alt="Product image" />
+              </div>
+            </div>
+
+            <div class="pane" data-pane="3d" role="tabpanel">
+              <div class="mediaInner">
+                <model-viewer
+                  class="mv"
+                  camera-controls
+                  disable-pan
+                  interaction-prompt="none"
+                  loading="eager"
+                  reveal="auto"
+                  exposure="1"
+                  field-of-view="30deg"
+                ></model-viewer>
+
+                <div class="handHint show" aria-hidden="true">
+                  <svg viewBox="0 0 64 64" fill="none">
+                    <path d="M26 30V18c0-3 2-5 5-5s5 2 5 5v12" stroke="#111" stroke-width="3.5" stroke-linecap="round"/>
+                    <path d="M36 30V22c0-3 2-5 5-5s5 2 5 5v16c0 9-7 16-16 16s-16-7-16-16v-6"
+                          stroke="#111" stroke-width="3.5" stroke-linecap="round"/>
+                    <path d="M22 33l-4-4c-2-2-5-2-7 0s-2 5 0 7l11 11"
+                          stroke="#111" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M10 20c4-6 11-10 22-10s18 4 22 10" stroke="#111" stroke-opacity=".25" stroke-width="3" stroke-linecap="round"/>
+                  </svg>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="content">
+            <div class="title js-title">President Two</div>
+            <div class="specs">
+              <div><b>Platform</b> <span>3.05m / 10’</span></div>
+              <div><b>Power</b> <span>2.2kW / 3HP</span></div>
+            </div>
+            <div class="btnRow">
+              <button class="btn" type="button">CAD</button>
+              <button class="btn" type="button">Spec</button>
+              <button class="btn btnPrimary" type="button">Build your quote</button>
             </div>
           </div>
         </div>
       </div>
+    </section>
 
-      <!-- Content -->
-      <div class="content">
-        <div class="title">President</div>
-
-        <div class="specs">
-          <div><b>Platform</b> <span>3.05m / 10’</span></div>
-          <div><b>Power</b> <span>2.2kW / 3HP</span></div>
-        </div>
-
-        <div class="btnRow">
-          <button class="btn" type="button">CAD</button>
-          <button class="btn" type="button">Spec</button>
-          <button class="btn btnPrimary" type="button">Build your quote</button>
+    <!-- Turbo Series: 1 card full width -->
+    <section class="series">
+      <div class="seriesHeader">
+        <div>
+          <h2 class="seriesTitle">Turbo Series</h2>
+          <p class="seriesSub">1 card · full width</p>
         </div>
       </div>
-    </div>
+
+      <div class="cardsGrid cardsGrid--one">
+        <div class="card product-card" data-title="Turbo" data-image="./image.png" data-glb="./PresidentLux_Test2.glb">
+          <div class="tabsRow">
+            <div class="tabs" role="tablist" aria-label="Media tabs">
+              <button class="tabBtn active" type="button" data-tab="image" aria-selected="true">Image</button>
+              <button class="tabBtn" type="button" data-tab="3d" aria-selected="false">3D View</button>
+            </div>
+          </div>
+
+          <div class="media">
+            <div class="pane active" data-pane="image" role="tabpanel">
+              <div class="mediaInner">
+                <img class="hero" alt="Product image" />
+              </div>
+            </div>
+
+            <div class="pane" data-pane="3d" role="tabpanel">
+              <div class="mediaInner">
+                <model-viewer
+                  class="mv"
+                  camera-controls
+                  disable-pan
+                  interaction-prompt="none"
+                  loading="eager"
+                  reveal="auto"
+                  exposure="1"
+                  field-of-view="30deg"
+                ></model-viewer>
+
+                <div class="handHint show" aria-hidden="true">
+                  <svg viewBox="0 0 64 64" fill="none">
+                    <path d="M26 30V18c0-3 2-5 5-5s5 2 5 5v12" stroke="#111" stroke-width="3.5" stroke-linecap="round"/>
+                    <path d="M36 30V22c0-3 2-5 5-5s5 2 5 5v16c0 9-7 16-16 16s-16-7-16-16v-6"
+                          stroke="#111" stroke-width="3.5" stroke-linecap="round"/>
+                    <path d="M22 33l-4-4c-2-2-5-2-7 0s-2 5 0 7l11 11"
+                          stroke="#111" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M10 20c4-6 11-10 22-10s18 4 22 10" stroke="#111" stroke-opacity=".25" stroke-width="3" stroke-linecap="round"/>
+                  </svg>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="content">
+            <div class="title js-title">Turbo</div>
+            <div class="specs">
+              <div><b>Platform</b> <span>3.05m / 10’</span></div>
+              <div><b>Power</b> <span>2.2kW / 3HP</span></div>
+            </div>
+            <div class="btnRow">
+              <button class="btn" type="button">CAD</button>
+              <button class="btn" type="button">Spec</button>
+              <button class="btn btnPrimary" type="button">Build your quote</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
   </div>
 
   <script>
-    // Tabs
-    const tabImage = document.getElementById('tabImage');
-    const tab3d = document.getElementById('tab3d');
-    const paneImage = document.getElementById('paneImage');
-    const pane3d = document.getElementById('pane3d');
+  (() => {
+    // 3D tuning
+    const START_AZ = -22;   // 3/4 к зрителю
+    const POLAR = 78;       // лёгкий наклон сверху (платформа "к зрителю")
+    const LIMIT = 85;       // не показывать заднюю часть
+    const AMP = 10;         // амплитуда демо
+    const SPEED = 0.00055;  // скорость демо
 
-    function setTab(mode){
-      const is3d = mode === '3d';
-      tabImage.classList.toggle('active', !is3d);
-      tab3d.classList.toggle('active', is3d);
-      tabImage.setAttribute('aria-selected', String(!is3d));
-      tab3d.setAttribute('aria-selected', String(is3d));
-      paneImage.classList.toggle('active', !is3d);
-      pane3d.classList.toggle('active', is3d);
-    }
-    tabImage.addEventListener('click', () => setTab('image'));
-    tab3d.addEventListener('click', () => setTab('3d'));
+    const qs = (root, sel) => root.querySelector(sel);
 
-    // 3D behavior
-    const mv = document.getElementById('mv');
-    const hand = document.getElementById('hand');
+    function stop3dDemo(card) {
+      const state = card.__mvState;
+      if (!state) return;
+      state.autoActive = false;
+      if (state.raf) cancelAnimationFrame(state.raf);
+      state.raf = null;
 
-    let autoActive = true;
-    let raf = null;
-    let framed = false;
-
-    // 
-    const START_AZ = -22; // -16..-30
-    const POLAR = 78;     // 75..82
-    const LIMIT = 85;     // скрыть заднюю часть
-    const AMP = 10;       // лёгкое движение
-    const SPEED = 0.00055;
-
-    function stopAuto(){
-      autoActive = false;
-      if (raf) cancelAnimationFrame(raf);
-      raf = null;
-      hand.classList.add('hide');
-      hand.classList.remove('show');
-
-      mv.removeEventListener('pointerdown', stopAuto);
-      mv.removeEventListener('touchstart', stopAuto);
-      mv.removeEventListener('mousedown', stopAuto);
-      mv.removeEventListener('wheel', stopAuto);
-      window.removeEventListener('keydown', stopAuto);
-    }
-    mv.addEventListener('pointerdown', stopAuto);
-    mv.addEventListener('touchstart', stopAuto, { passive: true });
-    mv.addEventListener('mousedown', stopAuto);
-    mv.addEventListener('wheel', stopAuto);
-    window.addEventListener('keydown', stopAuto);
-
-    function setOrbit(az, dist){
-      mv.cameraOrbit = `${az}deg ${POLAR}deg ${dist}m`;
+      const hand = qs(card, '.handHint');
+      if (hand) { hand.classList.add('hide'); hand.classList.remove('show'); }
     }
 
-    function frameModelOnce(){
-      if (framed) return;
-      framed = true;
+    function start3dIfNeeded(card) {
+      const pane3d = qs(card, '.pane[data-pane="3d"]');
+      if (!pane3d || !pane3d.classList.contains('active')) return;
 
+      const mv = qs(card, 'model-viewer.mv');
+      if (!mv) return;
+
+      // ensure src set
+      const glb = card.getAttribute('data-glb');
+      if (glb && !mv.getAttribute('src')) mv.setAttribute('src', glb);
+
+      // frame once per open
+      if (card.__mvState && card.__mvState.framed) return;
+
+      const run = () => frameAndDemo(card);
+
+      if (mv.modelIsVisible) run();
+      else {
+        const onLoad = () => {
+          mv.removeEventListener('load', onLoad);
+          run();
+        };
+        mv.addEventListener('load', onLoad);
+      }
+    }
+
+    function frameAndDemo(card) {
+      const mv = qs(card, 'model-viewer.mv');
+      const hand = qs(card, '.handHint');
+      if (!mv) return;
+
+      if (!card.__mvState) card.__mvState = { autoActive: true, raf: null, framed: false, interacted: false, listenersAdded: false };
+      const state = card.__mvState;
+
+      state.framed = true;
+      state.autoActive = true;
+
+      if (hand && !state.interacted) { hand.classList.add('show'); hand.classList.remove('hide'); }
+
+      // stop on interaction (once)
+      if (!state.listenersAdded) {
+        const stop = () => {
+          state.interacted = true;
+          state.autoActive = false;
+          if (state.raf) cancelAnimationFrame(state.raf);
+          state.raf = null;
+          if (hand) { hand.classList.add('hide'); hand.classList.remove('show'); }
+
+          mv.removeEventListener('pointerdown', stop);
+          mv.removeEventListener('touchstart', stop);
+          mv.removeEventListener('mousedown', stop);
+          mv.removeEventListener('wheel', stop);
+          window.removeEventListener('keydown', stop);
+        };
+
+        mv.addEventListener('pointerdown', stop);
+        mv.addEventListener('touchstart', stop, { passive: true });
+        mv.addEventListener('mousedown', stop);
+        mv.addEventListener('wheel', stop);
+        window.addEventListener('keydown', stop);
+
+        state.listenersAdded = true;
+      }
+
+      // auto frame camera
       const c = mv.getBoundingBoxCenter();
       const s = mv.getDimensions();
 
@@ -422,59 +747,101 @@
       const vFov = (fovDeg * Math.PI) / 180;
       const hFov = 2 * Math.atan(Math.tan(vFov / 2) * aspect);
 
-      const pad = 1.30; // если режет — 1.40
+      const pad = 1.30;
       const maxH = Math.max(s.x, s.z);
 
       const distByWidth  = (maxH * pad) / (2 * Math.tan(hFov / 2));
       const distByHeight = (s.y  * pad) / (2 * Math.tan(vFov / 2));
       const baseDist = Math.max(distByWidth, distByHeight);
 
-      // Pinch zoom: диапазон дистанции
+      // pinch zoom range
       const minDist = baseDist * 0.65;
       const maxDist = baseDist * 1.80;
 
-      // Блокируем вертикаль: POLAR фиксированный в min/max
       mv.minCameraOrbit = `${START_AZ - LIMIT}deg ${POLAR}deg ${minDist}m`;
       mv.maxCameraOrbit = `${START_AZ + LIMIT}deg ${POLAR}deg ${maxDist}m`;
 
-      setOrbit(START_AZ, baseDist);
+      mv.cameraOrbit = `${START_AZ}deg ${POLAR}deg ${baseDist}m`;
 
-      // demo-движение, пока нет взаимодействия
+      if (state.interacted) return;
+
       let t0 = null;
-      function demo(ts){
-        if (!autoActive) return;
+      const loop = (ts) => {
+        if (!state.autoActive) return;
         if (!t0) t0 = ts;
         const t = (ts - t0) * SPEED;
         const az = START_AZ + Math.sin(t) * AMP;
-        setOrbit(az, baseDist);
-        raf = requestAnimationFrame(demo);
-      }
-      raf = requestAnimationFrame(demo);
+        mv.cameraOrbit = `${az}deg ${POLAR}deg ${baseDist}m`;
+        state.raf = requestAnimationFrame(loop);
+      };
+
+      if (state.raf) cancelAnimationFrame(state.raf);
+      state.raf = requestAnimationFrame(loop);
     }
 
-    // Когда модель готова
-    mv.addEventListener('load', () => {
-      if (pane3d.classList.contains('active')) frameModelOnce();
+    function setTab(card, mode) {
+      const is3d = mode === '3d';
+
+      const btnImg = qs(card, '.tabBtn[data-tab="image"]');
+      const btn3d  = qs(card, '.tabBtn[data-tab="3d"]');
+      if (btnImg && btn3d) {
+        btnImg.classList.toggle('active', !is3d);
+        btn3d.classList.toggle('active', is3d);
+        btnImg.setAttribute('aria-selected', String(!is3d));
+        btn3d.setAttribute('aria-selected', String(is3d));
+      }
+
+      const paneImg = qs(card, '.pane[data-pane="image"]');
+      const pane3d  = qs(card, '.pane[data-pane="3d"]');
+      if (paneImg && pane3d) {
+        paneImg.classList.toggle('active', !is3d);
+        pane3d.classList.toggle('active', is3d);
+      }
+
+      if (!is3d) stop3dDemo(card);
+      else {
+        if (card.__mvState) card.__mvState.framed = false; // reframe on open
+        start3dIfNeeded(card);
+      }
+    }
+
+    function initCard(card) {
+      const title = card.getAttribute('data-title');
+      const titleEl = qs(card, '.js-title');
+      if (title && titleEl) titleEl.textContent = title;
+
+      const img = qs(card, 'img.hero');
+      const imageSrc = card.getAttribute('data-image');
+      if (img && imageSrc) img.setAttribute('src', imageSrc);
+
+      const mv = qs(card, 'model-viewer.mv');
+      const glb = card.getAttribute('data-glb');
+      if (mv && glb) mv.setAttribute('src', glb);
+
+      const btnImg = qs(card, '.tabBtn[data-tab="image"]');
+      const btn3d = qs(card, '.tabBtn[data-tab="3d"]');
+
+      if (btnImg) btnImg.addEventListener('click', () => setTab(card, 'image'));
+      if (btn3d) btn3d.addEventListener('click', () => setTab(card, '3d'));
+
+      setTab(card, 'image');
+    }
+
+    // init all cards
+    document.querySelectorAll('.product-card').forEach(initCard);
+
+    // reframe on resize for visible 3D panes
+    window.addEventListener('resize', () => {
+      document.querySelectorAll('.product-card').forEach(card => {
+        const pane3d = qs(card, '.pane[data-pane="3d"]');
+        if (pane3d && pane3d.classList.contains('active')) {
+          if (card.__mvState) card.__mvState.framed = false;
+          start3dIfNeeded(card);
+        }
+      });
     });
-
-    // При переключении на 3D — кадрируем и показываем иконку
-    tab3d.addEventListener('click', () => {
-      hand.classList.add('show');
-      hand.classList.remove('hide');
-
-      autoActive = true;
-      framed = false;
-
-      setTimeout(frameModelOnce, 50);
-    });
-
-    // При уходе на Image — остановить анимацию (экономия батареи)
-    tabImage.addEventListener('click', () => {
-      if (raf) cancelAnimationFrame(raf);
-      raf = null;
-      hand.classList.add('hide');
-      hand.classList.remove('show');
-    });
+  })();
   </script>
+
 </body>
 </html>
