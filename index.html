@@ -44,17 +44,15 @@
       box-shadow: 0 6px 18px rgba(0,0,0,.10);
       user-select: none;
       pointer-events: none; /* не мешает вращать */
-      transform-origin: left bottom;
       opacity: 0;
+      transform: translateY(6px);
       transition: opacity .25s ease, transform .25s ease;
     }
     .hint.show { opacity: 1; transform: translateY(0); }
-    .hint.hide { opacity: 0; transform: translateY(6px); }
 
     .hintText { font-size: 13px; line-height: 1.1; opacity: .8; }
     .hintText strong { opacity: 1; }
 
-    /* Finger icon animation */
     .finger {
       width: 34px; height: 34px;
       border-radius: 999px;
@@ -110,20 +108,18 @@
         loading="eager"
         reveal="auto"
 
-        /* камера дальше (чтобы влезало) */
-        camera-orbit="0deg 90deg 6m"
-        min-camera-orbit="-85deg 90deg 6m"
-        max-camera-orbit="85deg 90deg 6m"
+        /* стартовые значения (потом JS подстроит точно) */
+        camera-orbit="0deg 90deg 8m"
+        min-camera-orbit="-80deg 90deg 8m"
+        max-camera-orbit="80deg 90deg 8m"
 
-        /* точка вращения (можно потом подстроить) */
-        camera-target="0m 1.5m 0m"
-        field-of-view="25deg"
+        camera-target="auto auto auto"
+        field-of-view="30deg"
         exposure="1"
       ></model-viewer>
 
       <div id="hint" class="hint">
         <div class="finger" aria-hidden="true">
-          <!-- simple finger icon -->
           <svg viewBox="0 0 24 24" fill="none">
             <path d="M10 12V6a2 2 0 1 1 4 0v6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
             <path d="M14 12V8a2 2 0 1 1 4 0v7.5a4.5 4.5 0 0 1-9 0V13" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
@@ -142,38 +138,58 @@
     const mv = document.getElementById('mv');
     const hint = document.getElementById('hint');
 
-    // показываем подсказку при загрузке, скрываем после первого взаимодействия
-    function showHint() {
-      hint.classList.remove('hide');
-      hint.classList.add('show');
-    }
-    function hideHint() {
-      hint.classList.remove('show');
-      hint.classList.add('hide');
-    }
+    const showHint = () => hint.classList.add('show');
+    const hideHint = () => hint.classList.remove('show');
 
     showHint();
-
-    // прячем через 6 секунд, даже если не трогали
     const autoHide = setTimeout(hideHint, 6000);
 
-    // прячем сразу после первого взаимодействия
     const hideOnInteract = () => {
       clearTimeout(autoHide);
       hideHint();
       mv.removeEventListener('pointerdown', hideOnInteract);
-      mv.removeEventListener('touchstart', hideOnInteract, { passive: true });
-      mv.removeEventListener('mousedown', hideOnInteract);
-      mv.removeEventListener('keydown', hideOnInteract);
+      mv.removeEventListener('touchstart', hideOnInteract);
     };
-
     mv.addEventListener('pointerdown', hideOnInteract);
     mv.addEventListener('touchstart', hideOnInteract, { passive: true });
-    mv.addEventListener('mousedown', hideOnInteract);
-    mv.addEventListener('keydown', hideOnInteract);
 
-    // если модель загрузилась — можно ещё раз кратко подсветить
+    // ---- Авто-кадрирование: отодвигаем камеру так, чтобы модель влезла ----
     mv.addEventListener('load', () => {
+      // Центр модели
+      const c = mv.getBoundingBoxCenter(); // {x,y,z}
+      // Размеры модели
+      const s = mv.getDimensions();        // {x,y,z}
+
+      // Target = центр модели (и чуть выше, чтобы платформа не "лежала" внизу)
+      const targetY = c.y + (s.y * 0.10);
+      mv.cameraTarget = `${c.x}m ${targetY}m ${c.z}m`;
+
+      // Рассчитываем дистанцию, чтобы влезло по ширине/глубине
+      const fovDeg = 30;
+      const fov = fovDeg * Math.PI / 180;
+
+      // aspect берём из реального размера canvas
+      const rect = mv.getBoundingClientRect();
+      const aspect = Math.max(0.2, rect.width / Math.max(1, rect.height));
+
+      // горизонтальный FOV
+      const hFov = 2 * Math.atan(Math.tan(fov / 2) * aspect);
+
+      // хотим вместить самый "длинный" размер в кадр:
+      const maxH = Math.max(s.x, s.z); // длина/ширина тренажёра
+      const padding = 1.25;           // запас по краям (увеличьте до 1.35 если нужно)
+      const dist = (maxH * padding) / (2 * Math.tan(hFov / 2));
+
+      // Фиксируем только горизонтальное вращение на ~160° (зад не показываем)
+      const az = 0;               // стартовый азимут
+      const polar = 90;           // фикс вертикали
+      const limit = 80;           // +/- 80° = 160° (если хотите ближе к 180 — поставьте 85/90)
+
+      mv.cameraOrbit = `${az}deg ${polar}deg ${dist}m`;
+      mv.minCameraOrbit = `${-limit}deg ${polar}deg ${dist}m`;
+      mv.maxCameraOrbit = `${limit}deg ${polar}deg ${dist}m`;
+
+      // Подсказку ещё раз покажем на пару секунд после загрузки
       showHint();
       setTimeout(hideHint, 4500);
     });
