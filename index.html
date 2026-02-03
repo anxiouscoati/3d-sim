@@ -3,136 +3,414 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Trainer 3D Viewer</title>
+  <title>Prototype – Image / 3D</title>
 
+  <!-- Inter (как в прототипах) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- model-viewer -->
   <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
 
   <style>
-    :root { --radius: 18px; }
-    body { margin: 0; font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial; background: #fff; }
-    .wrap { max-width: 1100px; margin: 0 auto; padding: 16px; }
-    .viewer { position: relative; border-radius: var(--radius); overflow: hidden; background: #fff; box-shadow: 0 10px 30px rgba(0,0,0,.08); }
-    model-viewer { width: 100%; height: 560px; display: block; background: #fff; touch-action: none; }
-    .handHint { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -55%); pointer-events: none; opacity: 0; transition: opacity .25s ease, transform .25s ease; filter: drop-shadow(0 6px 16px rgba(0,0,0,.18)); }
-    .handHint.show { opacity: .9; transform: translate(-50%, -55%) scale(1); }
-    .handHint.hide { opacity: 0; transform: translate(-50%, -55%) scale(.98); }
-    .handHint svg { width: 64px; height: 64px; opacity: .95; animation: hintWiggle 1.8s ease-in-out infinite; }
-    @keyframes hintWiggle { 0%{transform:rotate(-8deg) translateX(-6px);opacity:.65} 50%{transform:rotate(8deg) translateX(6px);opacity:.95} 100%{transform:rotate(-8deg) translateX(-6px);opacity:.65} }
-    @media (max-width: 600px) { model-viewer { height: 420px; } .handHint svg { width: 56px; height: 56px; } }
+    :root{
+      --card-bg:#ececec;
+      --dark-bg:#2b2b2b;
+
+      --tab-active-bg:#ffffff;
+      --tab-active-text:#3b6fb6;
+      --tab-inactive-text:#1a1c1a;
+
+      --btn-blue:#2f80ed;
+      --btn-red:#ff3346;
+      --btn-red-hover:#e62e3f;
+
+      --radius:17px;
+      --shadow: 0 14px 40px rgba(0,0,0,.10);
+      --shadow-hover: 0 22px 60px rgba(0,0,0,.16);
+      --border: rgba(0,0,0,.10);
+
+      --font: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, Arial;
+    }
+
+    *{ box-sizing:border-box; }
+    body{
+      margin:0;
+      font-family:var(--font);
+      background:#fff;
+      color:#000;
+      padding:24px 16px 60px;
+    }
+
+    .wrap{ max-width: 1100px; margin: 0 auto; }
+
+    .card{
+      background: var(--card-bg);
+      border-radius: var(--radius);
+      overflow:hidden;
+      box-shadow: var(--shadow);
+      transition: box-shadow .25s ease;
+    }
+    .card:hover{ box-shadow: var(--shadow-hover); }
+
+    /* Tabs row */
+    .tabsRow{
+      width:100%;
+      display:flex;
+      justify-content:center;
+      padding-top: 12px;
+    }
+    .tabs{
+      display:flex;
+      gap: 8px;
+      align-items:flex-start;
+    }
+    .tabBtn{
+      border:0;
+      background: transparent;
+      cursor:pointer;
+      padding: 10px 16px;
+      border-radius: 10px; /* rounded-lg */
+      font-size: 14px;
+      letter-spacing: -0.15px;
+      font-weight: 400;
+      color: var(--tab-inactive-text);
+      transition: background .15s ease, color .15s ease;
+    }
+    .tabBtn.active{
+      background: var(--tab-active-bg);
+      color: var(--tab-active-text);
+      font-weight: 500;
+    }
+
+    /* Media */
+    .media{
+      width:100%;
+      aspect-ratio: 561 / 397; /* как в компоненте */
+      position: relative;
+    }
+    .pane{
+      position:absolute;
+      inset:0;
+      display:none;
+    }
+    .pane.active{ display:block; }
+
+    .mediaInner{
+      width:100%;
+      height:100%;
+      position:relative;
+      background:#fff;
+    }
+
+    img.hero{
+      width:100%;
+      height:100%;
+      object-fit: contain;
+      display:block;
+      padding: 16px;          /* p-4 */
+      background:#fff;
+      mix-blend-mode:multiply; 
+    }
+
+    model-viewer{
+      width:100%;
+      height:100%;
+      display:block;
+      background:#fff;
+      touch-action:none; /* важно для iOS Safari */
+    }
+
+    /* Hand icon only */
+    .handHint{
+      position:absolute;
+      left:50%;
+      top:50%;
+      transform:translate(-50%,-55%);
+      pointer-events:none;
+      opacity:0;
+      transition:opacity .25s ease, transform .25s ease;
+      filter: drop-shadow(0 10px 22px rgba(0,0,0,0.18));
+    }
+    .handHint.show{
+      opacity:.9;
+      transform:translate(-50%,-55%) scale(1);
+    }
+    .handHint.hide{
+      opacity:0;
+      transform:translate(-50%,-55%) scale(.98);
+    }
+    .handHint svg{
+      width:64px;
+      height:64px;
+      opacity:.95;
+      animation: hintWiggle 1.8s ease-in-out infinite;
+    }
+    @keyframes hintWiggle{
+      0%{ transform: rotate(-8deg) translateX(-6px); opacity:.65; }
+      50%{ transform: rotate( 8deg) translateX( 6px); opacity:.95; }
+      100%{transform: rotate(-8deg) translateX(-6px); opacity:.65; }
+    }
+
+    /* Content */
+    .content{
+      padding: 8px 16px 18px; /* px-4 pb-6 pt-2 */
+      display:flex;
+      flex-direction:column;
+      gap: 14px;
+    }
+    .title{
+      margin: 6px 0 0;
+      text-align:center;
+      font-weight: 700;
+      font-size: 24px; /* text-2xl */
+      line-height: 32px; /* leading-8 */
+    }
+
+    .specs{
+      display:flex;
+      gap: 18px;
+      justify-content:center;
+      flex-wrap:wrap;
+      font-size: 14px;
+    }
+    .specs b{ font-weight: 600; }
+    .specs span{ font-weight: 400; }
+
+    .btnRow{
+      display:flex;
+      gap: 12px;
+      align-items:stretch;
+    }
+    .btn{
+      flex:1;
+      border:0;
+      border-radius: 10px; /* rounded-lg */
+      padding: 12px 14px;
+      font-weight: 600;
+      cursor:pointer;
+      background: #fff;
+      color: var(--btn-blue);
+      transition: background .15s ease, color .15s ease, box-shadow .15s ease, transform .08s ease;
+    }
+    .btn:hover{
+      background: var(--btn-blue);
+      color:#fff;
+      box-shadow: 0 10px 18px rgba(0,0,0,.12);
+    }
+    .btn:active{ transform: translateY(1px); }
+
+    .btnPrimary{
+      flex: 1.15;
+      background: var(--btn-red);
+      color:#fff;
+    }
+    .btnPrimary:hover{
+      background: var(--btn-red-hover);
+      color:#fff;
+    }
+
+    @media (max-width: 640px){
+      .media{ aspect-ratio: 1 / 1; }
+      .handHint svg{ width:56px; height:56px; }
+      .btnRow{ flex-direction:column; }
+      .btnPrimary{ flex:1; }
+    }
   </style>
 </head>
 
 <body>
   <div class="wrap">
-    <div class="viewer">
-      <model-viewer
-        id="mv"
-        src="./PresidentLux_Test2.glb"
-        camera-controls
+    <div class="card">
+      <!-- Tabs -->
+      <div class="tabsRow">
+        <div class="tabs" role="tablist" aria-label="Media tabs">
+          <button class="tabBtn active" id="tabImage" role="tab" aria-selected="true">Image</button>
+          <button class="tabBtn" id="tab3d" role="tab" aria-selected="false">3D View</button>
+        </div>
+      </div>
 
-        disable-pan
-        interaction-prompt="none"
-        loading="eager"
-        reveal="auto"
+      <!-- Media -->
+      <div class="media">
+        <div class="pane active" id="paneImage" role="tabpanel" aria-labelledby="tabImage">
+          <div class="mediaInner">
+            <img class="hero" src="./image.png" alt="Product image" />
+          </div>
+        </div>
 
-        field-of-view="30deg"
-        exposure="1"
-      ></model-viewer>
+        <div class="pane" id="pane3d" role="tabpanel" aria-labelledby="tab3d">
+          <div class="mediaInner">
+            <model-viewer
+              id="mv"
+              src="./PresidentLux_Test2.glb"
+              camera-controls
+              disable-pan
+              interaction-prompt="none"
+              loading="eager"
+              reveal="auto"
+              exposure="1"
+              field-of-view="30deg"
+            ></model-viewer>
 
-      <div id="hand" class="handHint show" aria-hidden="true">
-        <svg viewBox="0 0 64 64" fill="none">
-          <path d="M26 30V18c0-3 2-5 5-5s5 2 5 5v12" stroke="#111" stroke-width="3.5" stroke-linecap="round"/>
-          <path d="M36 30V22c0-3 2-5 5-5s5 2 5 5v16c0 9-7 16-16 16s-16-7-16-16v-6"
-                stroke="#111" stroke-width="3.5" stroke-linecap="round"/>
-          <path d="M22 33l-4-4c-2-2-5-2-7 0s-2 5 0 7l11 11"
-                stroke="#111" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
-          <path d="M10 20c4-6 11-10 22-10s18 4 22 10" stroke="#111" stroke-opacity=".25" stroke-width="3" stroke-linecap="round"/>
-        </svg>
+            <div id="hand" class="handHint show" aria-hidden="true">
+              <svg viewBox="0 0 64 64" fill="none">
+                <path d="M26 30V18c0-3 2-5 5-5s5 2 5 5v12" stroke="#111" stroke-width="3.5" stroke-linecap="round"/>
+                <path d="M36 30V22c0-3 2-5 5-5s5 2 5 5v16c0 9-7 16-16 16s-16-7-16-16v-6"
+                      stroke="#111" stroke-width="3.5" stroke-linecap="round"/>
+                <path d="M22 33l-4-4c-2-2-5-2-7 0s-2 5 0 7l11 11"
+                      stroke="#111" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M10 20c4-6 11-10 22-10s18 4 22 10" stroke="#111" stroke-opacity=".25" stroke-width="3" stroke-linecap="round"/>
+              </svg>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Content -->
+      <div class="content">
+        <div class="title">President</div>
+
+        <div class="specs">
+          <div><b>Platform</b> <span>3.05m / 10’</span></div>
+          <div><b>Power</b> <span>2.2kW / 3HP</span></div>
+        </div>
+
+        <div class="btnRow">
+          <button class="btn" type="button">CAD</button>
+          <button class="btn" type="button">Spec</button>
+          <button class="btn btnPrimary" type="button">Build your quote</button>
+        </div>
       </div>
     </div>
   </div>
 
   <script>
+    // Tabs
+    const tabImage = document.getElementById('tabImage');
+    const tab3d = document.getElementById('tab3d');
+    const paneImage = document.getElementById('paneImage');
+    const pane3d = document.getElementById('pane3d');
+
+    function setTab(mode){
+      const is3d = mode === '3d';
+      tabImage.classList.toggle('active', !is3d);
+      tab3d.classList.toggle('active', is3d);
+      tabImage.setAttribute('aria-selected', String(!is3d));
+      tab3d.setAttribute('aria-selected', String(is3d));
+      paneImage.classList.toggle('active', !is3d);
+      pane3d.classList.toggle('active', is3d);
+    }
+    tabImage.addEventListener('click', () => setTab('image'));
+    tab3d.addEventListener('click', () => setTab('3d'));
+
+    // 3D behavior
     const mv = document.getElementById('mv');
     const hand = document.getElementById('hand');
 
     let autoActive = true;
     let raf = null;
+    let framed = false;
 
-    const START_AZ = -22;
-    const POLAR    = 78;
-    const LIMIT    = 85;
+    // 
+    const START_AZ = -22; // -16..-30
+    const POLAR = 78;     // 75..82
+    const LIMIT = 85;     // скрыть заднюю часть
+    const AMP = 10;       // лёгкое движение
+    const SPEED = 0.00055;
 
-    const stopAuto = () => {
+    function stopAuto(){
       autoActive = false;
       if (raf) cancelAnimationFrame(raf);
+      raf = null;
       hand.classList.add('hide');
       hand.classList.remove('show');
+
       mv.removeEventListener('pointerdown', stopAuto);
       mv.removeEventListener('touchstart', stopAuto);
       mv.removeEventListener('mousedown', stopAuto);
       mv.removeEventListener('wheel', stopAuto);
       window.removeEventListener('keydown', stopAuto);
-    };
-
+    }
     mv.addEventListener('pointerdown', stopAuto);
     mv.addEventListener('touchstart', stopAuto, { passive: true });
     mv.addEventListener('mousedown', stopAuto);
     mv.addEventListener('wheel', stopAuto);
     window.addEventListener('keydown', stopAuto);
 
-    function setOrbit(az, dist) {
+    function setOrbit(az, dist){
       mv.cameraOrbit = `${az}deg ${POLAR}deg ${dist}m`;
     }
 
-    mv.addEventListener('load', () => {
+    function frameModelOnce(){
+      if (framed) return;
+      framed = true;
+
       const c = mv.getBoundingBoxCenter();
       const s = mv.getDimensions();
 
       const targetY = c.y + (s.y * 0.12);
       mv.cameraTarget = `${c.x}m ${targetY}m ${c.z}m`;
 
-      const fovDeg = 30;
-      const vFov = (fovDeg * Math.PI) / 180;
-
       const rect = mv.getBoundingClientRect();
       const aspect = Math.max(0.2, rect.width / Math.max(1, rect.height));
+
+      const fovDeg = 30;
+      const vFov = (fovDeg * Math.PI) / 180;
       const hFov = 2 * Math.atan(Math.tan(vFov / 2) * aspect);
 
+      const pad = 1.30; // если режет — 1.40
       const maxH = Math.max(s.x, s.z);
-      const pad  = 1.30;
 
       const distByWidth  = (maxH * pad) / (2 * Math.tan(hFov / 2));
       const distByHeight = (s.y  * pad) / (2 * Math.tan(vFov / 2));
-      const dist = Math.max(distByWidth, distByHeight);
+      const baseDist = Math.max(distByWidth, distByHeight);
 
-      // Ограничение вращения (горизонталь) + лимиты зума
-      const minDist = dist * 0.65; // ближе (pinch in)
-      const maxDist = dist * 1.80; // дальше (pinch out)
+      // Pinch zoom: диапазон дистанции
+      const minDist = baseDist * 0.65;
+      const maxDist = baseDist * 1.80;
 
+      // Блокируем вертикаль: POLAR фиксированный в min/max
       mv.minCameraOrbit = `${START_AZ - LIMIT}deg ${POLAR}deg ${minDist}m`;
       mv.maxCameraOrbit = `${START_AZ + LIMIT}deg ${POLAR}deg ${maxDist}m`;
 
-      // Стартовая позиция (средняя дистанция)
-      setOrbit(START_AZ, dist);
+      setOrbit(START_AZ, baseDist);
 
-      // Авто-покачивание до взаимодействия (оно не мешает pinch)
-      const AMP = 10;
-      const SPEED = 0.00055;
+      // demo-движение, пока нет взаимодействия
       let t0 = null;
-
-      function demo(ts) {
+      function demo(ts){
         if (!autoActive) return;
         if (!t0) t0 = ts;
         const t = (ts - t0) * SPEED;
         const az = START_AZ + Math.sin(t) * AMP;
-        setOrbit(az, dist);
+        setOrbit(az, baseDist);
         raf = requestAnimationFrame(demo);
       }
       raf = requestAnimationFrame(demo);
+    }
 
+    // Когда модель готова
+    mv.addEventListener('load', () => {
+      if (pane3d.classList.contains('active')) frameModelOnce();
+    });
+
+    // При переключении на 3D — кадрируем и показываем иконку
+    tab3d.addEventListener('click', () => {
       hand.classList.add('show');
       hand.classList.remove('hide');
+
+      autoActive = true;
+      framed = false;
+
+      setTimeout(frameModelOnce, 50);
+    });
+
+    // При уходе на Image — остановить анимацию (экономия батареи)
+    tabImage.addEventListener('click', () => {
+      if (raf) cancelAnimationFrame(raf);
+      raf = null;
+      hand.classList.add('hide');
+      hand.classList.remove('show');
     });
   </script>
 </body>
